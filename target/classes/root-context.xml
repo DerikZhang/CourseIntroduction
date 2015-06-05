@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/tx       
+    http://www.springframework.org/schema/tx/spring-tx-4.0.xsd  
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-4.0.xsd"
+	default-autowire="byName" default-lazy-init="true">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<!-- auto scan -->
+	<context:component-scan base-package="org.tdgo.CourseIntroduction" />
+		
+	<bean id="configReader" class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:config.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- DataBase Setting -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="${jdbc_url}" />
+		<property name="username" value="${jdbc_user}" />
+		<property name="password" value="${jdbc_password}" />
+	</bean>
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 这几句在spring hibernate的注解整合中可以不需要 因为下面的2就是扫描指定路劲下的实体进行映射 -->
+		<!-- 1======================= -->
+		<property name="namingStrategy">
+			<bean class="org.hibernate.cfg.ImprovedNamingStrategy" />
+		</property>
+		<property name="annotatedClasses">
+			<!-- the must have. before this is mapping,now is entity -->
+			<list>
+				<!-- <value>cn.bnuz.party.vo.VerificationCode</value> 
+				<value>org.tdgo.CourseIntroduction.vo.Lesson</value>
+				<value>org.tdgo.CourseIntroduction.vo.Teacher</value>
+				<value>org.tdgo.CourseIntroduction.vo.Operater</value>
+				<value>org.tdgo.CourseIntroduction.vo.Comment</value>
+				<value>org.tdgo.CourseIntroduction.vo.Academy</value> -->
+			</list>
+		</property>
+		<!-- 1======================= -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
+				<prop key="hibernate.cache.use_query_cache">false</prop>
+				<prop key="hibernate.jdbc.batch_size">50</prop>
+				<prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate4.SpringSessionContext
+				</prop>
+				<prop key="hibernate.connection.autocommit">false</prop>
+				<prop key="hibernate.cache.use_second_level_cache">false</prop>
+			</props>
+		</property>
+		<!-- 2======================= -->
+		<!-- 自动扫描指定位置下的实体文件进行映射 -->
+		<property name="packagesToScan" value="org.tdgo.CourseIntroduction.vo" />
+		<!-- <property name="configLocations">
+			<list>
+				<value>
+					classpath*:hibernate.cfg.xml
+				</value>
+			</list>
+		</property>  -->
+		<!-- 2======================= -->
+	</bean>
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
+	<aop:config>
+		<aop:pointcut id="bussinessService"
+			expression="execution(* com.fan.service.base.*.*(..))" />
+		<aop:advisor pointcut-ref="bussinessService" advice-ref="txAdvice" />
+	</aop:config>
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="get*" read-only="false" propagation="NOT_SUPPORTED" />
+			<tx:method name="add*" read-only="false" propagation="NOT_SUPPORTED" />
+			<tx:method name="find*" read-only="false" propagation="NOT_SUPPORTED" />
+			<tx:method name="save*" propagation="REQUIRED" />
+			<!-- // 如果不把save update delete都配置上， -->
+			<tx:method name="update*" propagation="REQUIRED" />
+			<!-- //这些操作会无效 -->
+			<tx:method name="delete*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+	
+</beans>

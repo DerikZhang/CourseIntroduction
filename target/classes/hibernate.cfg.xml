@@ -1,0 +1,15 @@
+<!DOCTYPE hibernate-configuration PUBLIC  
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"  
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+	<session-factory>
+		<property name="javax.persistence.validation.mode">none</property>
+		<!-- 引入需要映射的类 -->
+		<mapping class="org.tdgo.CourseIntroduction.vo.Lesson" />
+		<mapping class="org.tdgo.CourseIntroduction.vo.Teacher" />
+		<mapping class="org.tdgo.CourseIntroduction.vo.Comment" />
+		<mapping class="org.tdgo.CourseIntroduction.vo.Academy" />
+		<mapping class="org.tdgo.CourseIntroduction.vo.Operater" />
+	</session-factory>
+</hibernate-configuration>  
